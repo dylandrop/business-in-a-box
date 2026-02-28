@@ -16,7 +16,7 @@ Read your split file FIRST before doing anything else.
 
 2. If you discover you need to modify a file NOT in your list, **do NOT modify it**. Instead, document the need in your result file as a "deferred item."
 
-3. **Do NOT run package manager install commands** (`npm install`, `yarn add`, `pip install`, `cargo add`, etc.). These modify shared manifest and lock files (`package.json`, `package-lock.json`, `yarn.lock`, `Cargo.lock`, etc.) which are NOT in your owned file list and will cause merge conflicts. If your fix requires a new dependency, document it as a deferred item with the exact package name and version.
+3. **Do NOT run package manager install commands** (`npm install`, `yarn add`, `pip install`, `cargo add`, `pod install`, `swift package resolve`, etc.). These modify shared manifest and lock files (`package.json`, `package-lock.json`, `yarn.lock`, `Cargo.lock`, `Podfile.lock`, `Package.resolved`, etc.) which are NOT in your owned file list and will cause merge conflicts. If your fix requires a new dependency, document it as a deferred item with the exact package name and version.
 
 4. Implement EVERY finding in your split. Follow the implementation plan for each.
 
@@ -38,19 +38,39 @@ For each finding in your split:
 Discover how to build and test this project:
 - Check `package.json` for `build`, `test`, `lint` scripts
 - Check for `Makefile`, `Cargo.toml`, `pyproject.toml`, `go.mod`
+- Check for `*.xcodeproj`, `*.xcworkspace` (iOS/macOS Xcode projects)
+- Check for `build.gradle`, `build.gradle.kts`, `settings.gradle`, `settings.gradle.kts` (Android/Gradle projects)
+- Check for `Podfile`, `Package.swift` (iOS dependency/package manifests)
+- Check for `pubspec.yaml` (Flutter projects)
+- Check for `Fastfile` (Fastlane automation)
 - Check for test configs: `jest.config.*`, `vitest.config.*`, `playwright.config.*`, `cypress.config.*`
+- Check for mobile test files: `*Tests.swift`, `*UITests.swift` (iOS XCTest), `src/test/` and `src/androidTest/` (Android), `test/` and `integration_test/` (Flutter)
 - Check for `e2e/`, `tests/`, `__tests__/`, `spec/` directories
 
 Then:
 1. **Build**: Run the project's build step. Fix any compilation errors.
+   - Web/Node: `npm run build`, `yarn build`, etc.
+   - iOS: `xcodebuild build -scheme {scheme} -destination 'generic/platform=iOS Simulator'`
+   - Android: `./gradlew assembleDebug`
+   - Flutter: `flutter build apk --debug` or `flutter build ios --no-codesign`
 2. **Unit tests**: Run tests scoped to your changed files if possible (e.g., `npx jest path/to/file`). If scoping isn't possible, run the full test suite.
+   - Web/Node: `npx jest`, `npx vitest`, etc.
+   - iOS: `xcodebuild test -scheme {scheme} -destination 'platform=iOS Simulator,name=iPhone 16'`
+   - Android: `./gradlew testDebugUnitTest`
+   - Flutter: `flutter test`
 3. **E2E tests**: If the project has E2E tests, run them. Fix failures caused by your changes.
 4. **Lint**: If a linter is configured, run it on changed files.
+   - Web/Node: `npx eslint`, `npx prettier`, etc.
+   - iOS: `swiftlint lint --path {changed_file}`
+   - Android: `./gradlew lint` or `./gradlew detekt`
+   - Flutter: `flutter analyze`
 
 **Port and resource isolation**: If tests require a database, server port, or temp directory, use your split number to avoid collisions with other parallel agents:
 - Set `PORT={5000 + split_number}` (e.g., split 2 → PORT=5002)
 - Set `TEST_DATABASE_URL` to use a unique DB name: `test_audit_split_{N}`
 - Use `/tmp/audit-split-{N}/` for any temp file output
+- For Android: Use emulator port offset `{5554 + (split_number * 2)}` to avoid collisions with other emulator instances
+- For iOS: Use a unique simulator device name or UDID per split to avoid simulator conflicts (e.g., `audit-split-{N}`)
 
 If a test fails due to a pre-existing issue (not your changes), note it in your result file but don't block on it.
 
