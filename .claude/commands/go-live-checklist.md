@@ -115,7 +115,7 @@ Launch one Agent (`subagent_type: "general-purpose"`):
 
 After the agent completes, set `state.phase = "complete"`.
 
-Tell the user: "Go-live checklist saved to `.claude/go-live/GO-LIVE-CHECKLIST.md`." Do NOT read the entire checklist to the user — they can find it in the file.
+Tell the user: "Go-live checklist saved to `.claude/go-live/GO-LIVE-CHECKLIST.md`. Run `/project:production-audit` next — it will pick up this checklist and implement the items iteratively."
 
 ---
 
