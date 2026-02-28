@@ -24,12 +24,20 @@ For each workflow:
 - Are tokens stored securely? (HttpOnly cookies preferred over localStorage for session tokens)
 - Is session management sound? (expiry, rotation, revocation)
 - Are password reset flows secure? (time-limited tokens, one-use, not leaked in URLs)
+- (Mobile): Is biometric authentication implemented correctly? (biometric tied to a cryptographic operation, not just a local gate)
+- For iOS: Are tokens/credentials stored in Keychain (NOT plain `UserDefaults`)?
+- For Android: Are tokens/credentials stored in `EncryptedSharedPreferences` or Android Keystore (NOT plain `SharedPreferences`)?
+- (Mobile): Is SSO performed via system browser (ASWebAuthenticationSession / Custom Tabs), NOT an embedded `WKWebView`/`WebView`?
 
 ### Authorization
 - Can users access or modify resources belonging to other users/orgs? (IDOR)
 - Is role-based access control enforced server-side, not just client-side?
 - Are admin endpoints protected from regular users?
 - Can users escalate their own privileges?
+- For Android: Are exported components (`android:exported="true"`) permission-guarded? Check activities, services, receivers, and content providers.
+- For iOS: Is URL scheme source validation performed? (check `UIApplicationDelegate.application(_:open:options:)` for source app validation)
+- For Android: Are `ContentProvider` permissions correctly set? (`android:readPermission`, `android:writePermission`, `android:permission`)
+- (Mobile): Is IPC data validated? (Intent extras, URL scheme parameters, App Group shared data)
 
 ### Input Validation
 - Is ALL user input validated server-side? (never trust client-only validation)
@@ -39,6 +47,11 @@ For each workflow:
 - **Path Traversal**: Is user input used in file paths without sanitization?
 - **SSRF**: Is user input used in URLs for server-side requests?
 - **ReDoS**: Are user-supplied regex patterns validated for catastrophic backtracking?
+- (Mobile): **Deep link injection**: Are deep link / Universal Link / App Link parameters validated and sanitized before use?
+- For Android: **Intent injection**: Are Intent extras validated? Can implicit Intents be intercepted or spoofed? Are `PendingIntent`s created with `FLAG_IMMUTABLE`?
+- (Mobile): **WebView JS bridge input validation**: Are `JavascriptInterface` (Android) / `WKScriptMessageHandler` (iOS) inputs validated? Is `evaluateJavaScript` called with untrusted data?
+- (Mobile): **Clipboard leakage**: Is sensitive data (tokens, passwords, OTPs) excluded from clipboard? Are custom paste controls used where appropriate?
+- (Mobile): **Deserialization from untrusted sources**: Is data from Intents, deep links, or IPC deserialized safely? (avoid `NSKeyedUnarchiver` without `requiresSecureCoding`, unchecked Parcelable/Serializable casts)
 
 ### CSRF / CORS
 - Are state-changing endpoints (POST/PUT/DELETE) protected against CSRF?
@@ -66,6 +79,31 @@ For each workflow:
 - Run or check for known vulnerable dependencies (check lock files for advisories)
 - Are dependencies pinned to avoid supply chain attacks?
 
+### Local Data Storage (Mobile)
+- Are tokens, credentials, and PII stored in platform secure storage? (Keychain on iOS, EncryptedSharedPreferences/Keystore on Android — NOT plain files, UserDefaults, or SharedPreferences)
+- Are local databases encrypted when containing sensitive data? (SQLCipher, Realm encryption, encrypted Room)
+- For iOS: Are file protection levels set appropriately? (`NSFileProtectionComplete` for sensitive files)
+- For Android: Are files stored in internal storage (not world-readable external storage) for sensitive data?
+- (Mobile): Is sensitive data cleared from memory after use? (zeroing credential buffers)
+- (Mobile): Are app snapshots/screenshots obscured for screens showing sensitive data? (iOS: hiding content in `applicationWillResignActive`, Android: `FLAG_SECURE`)
+- (Mobile): Are sensitive files excluded from backups? (iOS: `isExcludedFromBackup`, Android: `android:allowBackup="false"` or backup rules)
+- (Mobile): Is cache properly managed? (clearing sensitive responses from URL cache, no sensitive data in disk cache)
+
+### Network Security (Mobile)
+- For iOS: Is App Transport Security (ATS) enforced? (no `NSAllowsArbitraryLoads` exceptions without justification)
+- For Android: Is Network Security Config properly configured? (no `cleartextTrafficPermitted`, no debug-only trust anchors in release)
+- (Mobile): Is certificate pinning implemented for sensitive API connections? (checking via `TrustKit`, `URLSessionDelegate`, OkHttp `CertificatePinner`, or Network Security Config pins)
+- (Mobile): Are debug/development network exceptions removed in release builds?
+- (Mobile): Are WebSocket connections using WSS (not WS)?
+
+### Binary & Runtime Protection
+- For Android: Is code obfuscation enabled? (R8/ProGuard rules configured, not disabled)
+- (Mobile): Is jailbreak/root detection implemented for high-security apps? (and are security-critical operations gated on it?)
+- (Mobile): Are debug/verbose logs stripped from release builds? (no `NSLog`/`print` of sensitive data in release, no `Log.d`/`Log.v` in release)
+- For Android: Is `android:debuggable` set to `false` in release builds?
+- For iOS: Are entitlements minimal and appropriate? (no unnecessary capabilities)
+- (Mobile): Are hardcoded secrets present in the binary? (API keys, certificates, encryption keys embedded in source or assets)
+
 ### OWASP Top 10 Systematic Check
 1. Broken Access Control
 2. Cryptographic Failures
@@ -77,6 +115,18 @@ For each workflow:
 8. Data Integrity Failures
 9. Logging/Monitoring Failures
 10. SSRF
+
+### OWASP Mobile Top 10 Systematic Check
+1. **Improper Platform Usage**: Misuse of platform features (Keychain, permissions, Intents) or failure to use platform security controls
+2. **Insecure Data Storage**: Sensitive data in logs, backups, clipboard, plaintext files, or unprotected databases
+3. **Insecure Communication**: Missing TLS, weak TLS config, no certificate pinning, ignoring certificate errors
+4. **Insecure Authentication**: Weak local auth, missing server-side auth for mobile APIs, biometric bypass
+5. **Insufficient Cryptography**: Weak algorithms, hardcoded keys, improper key management, custom crypto implementations
+6. **Insecure Authorization**: Client-side authorization decisions, missing server-side role checks for mobile endpoints
+7. **Client Code Quality**: Buffer overflows, format string vulnerabilities, unsafe type casting in native code
+8. **Code Tampering**: Missing integrity checks, no jailbreak/root detection where required, injectable runtime hooks
+9. **Reverse Engineering**: No obfuscation, sensitive logic in client code, hardcoded secrets extractable from binary
+10. **Extraneous Functionality**: Debug endpoints, test backdoors, hidden admin features, verbose logging left in production
 
 ## Output Format
 
