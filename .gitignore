@@ -1,0 +1,7 @@
+# Runtime audit output (generated per-repo, not checked in)
+.claude/audit/
+.claude/worktrees/
+
+# OS
+.DS_Store
+Thumbs.db
