@@ -12,7 +12,9 @@ Automated production-readiness audit loop. Drop into any repo, run the command, 
 2. **Assess** every workflow in parallel across 3 lenses — UX, Security, Performance — with platform-specific criteria for web, iOS, and Android
 3. **Split** findings into conflict-free work packages (no shared files between splits)
 4. **Fix** all Critical/High/Medium findings via parallel agents in isolated git worktrees
-5. **Loop** — re-assess, fix new issues, repeat until clean (max 3 iterations)
+5. **Loop** — re-assess, fix new issues, repeat until clean (default 3 iterations, configurable)
+
+Pass an optional iteration count: `/project:production-audit 5`
 
 All progress is checkpointed to `.claude/audit/state.json`, so the command survives context flushes, token limits, and session restarts.
 
