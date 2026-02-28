@@ -2,16 +2,17 @@
 
 Reusable [Claude Code](https://docs.anthropic.com/en/docs/claude-code) slash commands for taking a codebase from prototype to production.
 
-## Workflow
+## Getting Started
 
-The two commands form a pipeline:
+1. Drop a business description into your repo (e.g. in `CLAUDE.md` or any file Claude can read) describing what your product does and who it's for
+2. Run `/project:go-live-checklist` — it identifies what's missing and works through decisions with you
+3. Run `/project:production-audit` — it picks up the checklist and iteratively implements, assesses, and refines until production-ready
+
+That's it. The two commands form a pipeline:
 
 ```
 go-live-checklist → production-audit
 ```
-
-1. **`go-live-checklist`** identifies what's missing — billing, analytics, auth, CI/CD, etc. — and works through decisions with you
-2. **`production-audit`** picks up the checklist output and iteratively implements, assesses, and refines until everything is production-ready
 
 You can also run either command standalone.
 
