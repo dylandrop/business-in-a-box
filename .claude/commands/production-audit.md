@@ -4,12 +4,16 @@ Automated audit loop: discover workflows → assess (UX/security/performance) �
 
 Resilient to context flushes via `.claude/audit/state.json`. Agent templates at `.claude/commands/audit-templates/`.
 
+## Parameters
+
+- `$ARGUMENTS` — optional: max number of audit iterations (default: 3). Example: `/project:production-audit 5`
+
 ## Initialize
 
 Run: `mkdir -p .claude/audit/findings .claude/audit/splits`
 
 If `.claude/audit/state.json` exists, read it and jump to the current `phase`.
-Otherwise, write: `{"iteration":1,"phase":"discovery","maxIterations":3,"workflowCount":0,"assessment":{"ux":"pending","security":"pending","performance":"pending"},"openFindings":{"critical":0,"high":0,"medium":0},"execution":{"totalSplits":0,"launched":[],"completed":[],"branches":{},"merged":[]},"errors":[]}`
+Otherwise: parse `$ARGUMENTS` as an integer for `maxIterations` (default `3` if empty or non-numeric). Write: `{"iteration":1,"phase":"discovery","maxIterations":<parsed>,"workflowCount":0,"assessment":{"ux":"pending","security":"pending","performance":"pending"},"openFindings":{"critical":0,"high":0,"medium":0},"execution":{"totalSplits":0,"launched":[],"completed":[],"branches":{},"merged":[]},"errors":[]}`
 
 ## Phase Routing
 
@@ -43,5 +47,5 @@ discovery → assessment → splitting → execution → merging → loop-check
 - Findings versioned: `.claude/audit/findings/iter-{N}/`
 - Splits namespaced: `.claude/audit/splits/iter-{N}/`
 - No two splits share files (parallel-safe).
-- Max 3 iterations.
+- Max iterations controlled by `state.maxIterations` (default 3, overridable via parameter).
 - All agents return ONE-LINE summaries — details are on disk.
