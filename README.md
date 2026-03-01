@@ -22,7 +22,7 @@ You can also run either command standalone.
 
 Go-live readiness assessment. Evaluates whether your project is ready to launch as a production business:
 
-1. **Assess** — 9 parallel agents scan the codebase for: billing, analytics, testing, error handling, feedback funnels, auth, security, infrastructure, and CI/CD
+1. **Assess** — parallel agents scan the codebase for: billing, analytics, testing, error handling, feedback funnels, auth, security, infrastructure, CI/CD, and App Store / Google Play readiness (iOS/Android)
 2. **Recommend** — compiles findings into external service needs, major business decisions, and minor items, then works through each decision with you interactively
 3. **Checklist** — generates a prioritized go-live checklist at `.claude/go-live/GO-LIVE-CHECKLIST.md`
 
@@ -48,6 +48,7 @@ Automated production-readiness audit loop. Drop into any repo, run the command, 
 3. **Split** findings into conflict-free work packages (no shared files between splits)
 4. **Fix** all Critical/High/Medium findings via parallel agents in isolated git worktrees
 5. **Loop** — re-assess, fix new issues, repeat until clean (default 3 iterations, configurable)
+6. **Report** — generates a final report with findings summary, resolved/open items, and a **Manual Steps Required** section cataloging everything Claude can't do itself (secrets to configure, services to sign up for, OAuth apps to register, store submissions to complete, DNS records to create, etc.)
 
 Pass an optional iteration count: `/project:production-audit 5`
 
@@ -57,6 +58,7 @@ All progress is checkpointed to `.claude/audit/state.json`, so the command survi
 
 - **Cross-platform** — supports web, iOS (Swift/SwiftUI/UIKit), Android (Kotlin/Compose/XML), React Native, and Flutter
 - **Repository-agnostic** — discovers project structure, test runners, and build systems dynamically
+- **Portable** — templates resolve project-local first, then global (`~/.claude/commands/`), so commands work in any repo without copying files
 - **Context-resilient** — state machine on disk, phase-specific instruction loading, one-line agent returns
 - **Token-optimized** — slim 45-line dispatcher, JIT-loaded phase instructions, findings never enter orchestrator context
 - **Parallel-safe** — file-disjoint splits, worktree isolation, port/DB isolation per agent, post-merge integration verification
@@ -71,7 +73,7 @@ All progress is checkpointed to `.claude/audit/state.json`, so the command survi
     orchestrator-discover-and-assess.md            # phases 1-3 instructions (JIT-loaded)
     orchestrator-execute-and-merge.md              # phases 4-7 instructions (JIT-loaded)
     discover-workflows.md                          # agent: workflow mapping (user + admin)
-    assess-ux.md                                   # agent: UX audit checklist (web + mobile)
+    assess-ux.md                                   # agent: UX audit (web + mobile + AI-generated code patterns)
     assess-security.md                             # agent: security audit (OWASP Top 10 + Mobile Top 10)
     assess-performance.md                          # agent: performance audit (web + mobile)
     execute-split.md                               # agent: implement fixes in worktree
@@ -90,7 +92,27 @@ All progress is checkpointed to `.claude/audit/state.json`, so the command survi
 
 ## Installation
 
-Copy the `.claude/commands/` directory into any repo:
+### Global install (recommended)
+
+Install once and use in any repo — no per-project setup needed:
+
+```bash
+git clone https://github.com/dylandrop/business-in-a-box.git /tmp/biab
+mkdir -p ~/.claude/commands
+cp -r /tmp/biab/.claude/commands/* ~/.claude/commands/
+rm -rf /tmp/biab
+```
+
+Then run in any repo with Claude Code:
+
+```
+/user:go-live-checklist
+/user:production-audit
+```
+
+### Per-project install
+
+Copy into a specific repo's `.claude/commands/`:
 
 ```bash
 # From inside your target repo
