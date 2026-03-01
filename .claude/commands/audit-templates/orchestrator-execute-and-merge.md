@@ -142,6 +142,67 @@ If the project targets iOS or Android:
 - Alerting rules to configure (error spike thresholds, downtime, billing failures) — different thresholds may be appropriate for staging vs production
 - Backup and disaster recovery verification
 
+### Setup Automation Script
+
+Generate a shell script at `.claude/audit/setup-automation.sh` that automates as much of the manual configuration above as possible. The script should:
+
+- Be idempotent (safe to run multiple times without breaking things)
+- Check for required CLI tools before running (e.g., `stripe`, `gh`, `vercel`, `fly`, `railway`, `netlify`, `aws`, `gcloud`, `firebase`, etc.) and print install instructions for any that are missing
+- Use the CLIs for external services where available to automate setup:
+  - **Stripe**: create products/prices matching code references via `stripe products create` / `stripe prices create`, register webhook endpoints via `stripe webhook_endpoints create`, output the webhook signing secret
+  - **Vercel/Netlify/Railway/Fly/etc.**: link project, set environment variables via CLI (e.g., `vercel env add`, `railway variables set`)
+  - **GitHub Actions**: set repository secrets via `gh secret set`
+  - **Clerk/Auth0/Firebase Auth**: use their CLI or API to configure allowed origins, redirect URIs where possible
+  - **Resend/SendGrid/SES**: use CLI or API to verify sending domains, create API keys
+  - **Database**: run migrations, seed initial data if seed scripts exist
+  - **DNS**: print the exact records needed (these usually can't be automated, but the script should output them clearly)
+- Prompt the user interactively for secrets and API keys it cannot generate itself, then write them to `.env` files and hosting provider environment configs
+- Separate setup steps by environment (production, staging, etc.) based on the user's decisions in `decisions.md`
+- Log every action it takes and skip steps that are already completed (detect existing config)
+- End with a summary of what was configured, what was skipped, and what still needs manual action
+
+Include the script in the report as a collapsible code block and also write it to disk:
+
+<details>
+<summary>Setup Automation Script (.claude/audit/setup-automation.sh)</summary>
+
+```bash
+{generated script content}
+```
+</details>
+
+> Run with: `chmod +x .claude/audit/setup-automation.sh && .claude/audit/setup-automation.sh`
+
+### Claude Automation Prompt
+
+Also include a ready-to-use Claude prompt that the user can paste into a new Claude Code session to have Claude interactively walk through and automate the remaining manual setup. The prompt should be tailored to this specific project — reference the actual services, environment variables, providers, and environments discovered during the audit. Write it as a fenced block the user can copy:
+
+> **Copy the prompt below into a new Claude Code session to get interactive help completing the remaining setup:**
+
+~~~
+You are helping me complete the production setup for my application. Here is what needs to be configured:
+
+{List each manual step category that applies, with specifics from the audit:}
+
+**Environment Variables Needed:**
+{List each variable name, which service it's for, and where to get the value}
+
+**External Services to Configure:**
+{List each service, what needs to be set up, and the specific webhook URLs / redirect URIs / config values from the codebase}
+
+**Infrastructure:**
+{Hosting provider, database, CI/CD — per environment}
+
+Please walk me through each step interactively:
+1. Ask me for credentials/API keys one service at a time
+2. Use CLI tools where available to automate the configuration (e.g., stripe CLI, vercel CLI, gh CLI)
+3. Write values to the appropriate .env files and set them on hosting providers
+4. Verify each step works before moving to the next
+5. At the end, run a verification check to confirm everything is connected
+
+Start with the most critical items first (secrets and environment variables), then move to external service configuration, then infrastructure.
+~~~
+
 ## Errors Encountered
 {from state.errors}
 
