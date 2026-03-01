@@ -7,7 +7,7 @@ Assess whether the current project is ready to launch as a production business. 
 Run: `mkdir -p .claude/go-live/assessments`
 
 If `.claude/go-live/state.json` exists, read it and jump to the current `phase`.
-Otherwise, write: `{"phase":"assessment","assessments":{"auth-security":"pending","testing-errors":"pending","billing-analytics":"pending","infrastructure-cicd":"pending","feedback":"pending"},"errors":[]}`
+Otherwise, write: `{"phase":"assessment","assessments":{"auth-security":"pending","testing-errors":"pending","billing-analytics":"pending","infrastructure-cicd":"pending","feedback":"pending","app-store-readiness":"pending"},"errors":[]}`
 
 ## Phase 1: Parallel Assessment
 
@@ -31,6 +31,25 @@ For each pending area, launch Agent (`subagent_type: "general-purpose"`, `model:
 
 **feedback** →
 > Assess go-live readiness for FEEDBACK FUNNELS. Scan the codebase for: contact forms, bug reporting, support email setup, in-app feedback widgets, NPS/survey tools, help center/FAQ, user communication channels. For each item found, note its status (implemented/partial/missing). For items NOT found, note what would typically be needed. Write findings + implementation suggestions to `.claude/go-live/assessments/feedback.md`. Return ONE LINE: "Feedback assessment complete."
+
+**app-store-readiness** →
+> Assess go-live readiness for APP STORE (iOS) and GOOGLE PLAY STORE (Android) submission. First determine which platforms the project targets (iOS, Android, or both) by scanning for Xcode project files, Android manifests, React Native/Flutter/Capacitor configs, etc. Skip any platform that is not present. For each applicable platform, assess the following:
+>
+> **iOS App Store — Metadata & Assets**: App Store Connect configuration or fastlane metadata, bundle identifier, app name/subtitle/description/keywords/category, app icon (all required sizes including 1024x1024), launch screen / splash screen, screenshots for required device sizes (6.7", 6.5", 5.5" iPhones; iPad Pro), preview videos (optional), privacy policy URL, marketing URL, support URL.
+>
+> **iOS App Store — Compliance & Review**: App Review Guidelines compliance (no placeholder content, all features functional, no hidden features, no misleading descriptions), age rating / content rating configured, App Tracking Transparency (ATT) prompt if tracking (with `NSUserTrackingUsageDescription`), App Privacy Details / privacy nutrition labels completed, export compliance (encryption usage declaration — `ITSAppUsesNonExemptEncryption` in Info.plist), all `NS*UsageDescription` keys set for every permission requested (Camera, Location, Microphone, Photo Library, Contacts, etc.), minimum deployment target meets current App Store requirements, Sign in with Apple implemented if other third-party sign-in is offered, in-app purchase / subscription configuration if applicable (products, pricing, StoreKit integration, receipt validation, restore purchases), Universal Links configured if deep linking is used, push notification entitlements and APNs configuration.
+>
+> **iOS App Store — Build & Release**: Xcode release build configuration (code signing, provisioning profiles, team ID), archive and upload workflow (manual, Xcode Cloud, fastlane, or CI), TestFlight beta testing configured, bitcode / app thinning settings, app size within limits (initial install < 200MB over cellular), crash-free rate / stability (no known crash-on-launch), version and build number management.
+>
+> **Google Play Store — Metadata & Assets**: Google Play Console configuration or fastlane supply metadata, application ID (package name), app name/short description/full description/category, app icon (512x512), feature graphic (1024x500), screenshots for phone, 7" tablet, 10" tablet (minimum 2 per type), preview video (optional YouTube link), privacy policy URL, contact email/website/phone.
+>
+> **Google Play Store — Compliance & Review**: Content rating questionnaire completed, Data Safety section completed (data collection, sharing, security practices), target audience and content declarations (especially if children are a target), ads declaration if serving ads, permissions declared in `AndroidManifest.xml` are minimal and justified, `targetSdkVersion` meets current Google Play requirements, 64-bit native library support (`arm64-v8a`, `x86_64`), large screen / tablet support declared and tested, app complies with Developer Program Policies (no deceptive behavior, proper disclosure, billing policy compliance for digital goods), Google Play Billing for in-app digital purchases if applicable (products, subscriptions, billing client integration), Android App Links configured if deep linking is used.
+>
+> **Google Play Store — Build & Release**: Android App Bundle (AAB) format used (not APK for Play Store), ProGuard/R8 code shrinking and obfuscation enabled for release, Play App Signing enrolled, release tracks configured (internal → closed → open → production), pre-launch report reviewed (Firebase Test Lab automated testing), app size optimized (download size, install size), version code and version name management, release notes for each version.
+>
+> **Cross-platform (if applicable)**: Are platform-specific assets (icons, splash screens, screenshots) maintained for both platforms? Are platform-specific metadata files (Info.plist, AndroidManifest.xml) fully configured? Are there any web-only placeholder screens or features that are non-functional on mobile? If using a cross-platform framework (React Native, Flutter, Capacitor, etc.), are native modules properly linked and built for both platforms?
+>
+> For each item found, note its status (implemented/partial/missing). For items NOT found, note what would typically be needed. Write findings + implementation suggestions to `.claude/go-live/assessments/app-store-readiness.md`. Return ONE LINE: "App Store Readiness assessment complete."
 
 ### After each agent completes
 Set `state.assessments.{area} = "complete"` immediately (incremental checkpoint).
