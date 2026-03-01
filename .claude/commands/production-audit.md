@@ -2,7 +2,7 @@
 
 Automated audit loop: discover workflows → assess (UX/security/performance) → fix all Critical/High/Medium findings via parallel worktree agents → repeat until clean.
 
-Resilient to context flushes via `.claude/audit/state.json`. Agent templates at `.claude/commands/audit-templates/`.
+Resilient to context flushes via `.claude/audit/state.json`. Agent templates at `~/.claude/commands/audit-templates/` (global) or `.claude/commands/audit-templates/` (project-local). Check project-local first, fall back to global.
 
 ## Parameters
 
@@ -13,7 +13,7 @@ Resilient to context flushes via `.claude/audit/state.json`. Agent templates at 
 Run: `mkdir -p .claude/audit/findings .claude/audit/splits`
 
 If `.claude/audit/state.json` exists, read it and jump to the current `phase`.
-Otherwise: parse `$ARGUMENTS` as an integer for `maxIterations` (default `3` if empty or non-numeric). Write: `{"iteration":1,"phase":"discovery","maxIterations":<parsed>,"workflowCount":0,"assessment":{"ux":"pending","security":"pending","performance":"pending"},"openFindings":{"critical":0,"high":0,"medium":0},"execution":{"totalSplits":0,"launched":[],"completed":[],"branches":{},"merged":[]},"errors":[]}`
+Otherwise: parse `$ARGUMENTS` as an integer for `maxIterations` (default `3` if empty or non-numeric). Resolve `templatesPath`: check if `.claude/commands/audit-templates/` exists in the project directory — if yes, use `.claude/commands/audit-templates`; otherwise use `~/.claude/commands/audit-templates`. Write: `{"iteration":1,"phase":"discovery","maxIterations":<parsed>,"templatesPath":"<resolved>","workflowCount":0,"assessment":{"ux":"pending","security":"pending","performance":"pending"},"openFindings":{"critical":0,"high":0,"medium":0},"execution":{"totalSplits":0,"launched":[],"completed":[],"branches":{},"merged":[]},"errors":[]}`
 
 ## Phase Routing
 
@@ -21,15 +21,17 @@ Read `state.phase`. Load the instructions file for the current phase — do NOT 
 
 | Phase | Read This File | Section to Follow |
 |-------|---------------|-------------------|
-| `discovery` | `audit-templates/orchestrator-discover-and-assess.md` | §Discovery |
-| `assessment` | `audit-templates/orchestrator-discover-and-assess.md` | §Assessment |
-| `splitting` | `audit-templates/orchestrator-discover-and-assess.md` | §Splitting |
-| `execution` | `audit-templates/orchestrator-execute-and-merge.md` | §Execution |
-| `merging` | `audit-templates/orchestrator-execute-and-merge.md` | §Merging |
-| `loop-check` | `audit-templates/orchestrator-execute-and-merge.md` | §Loop Check |
-| `report` | `audit-templates/orchestrator-execute-and-merge.md` | §Report |
+| `discovery` | `{TEMPLATES}/orchestrator-discover-and-assess.md` | §Discovery |
+| `assessment` | `{TEMPLATES}/orchestrator-discover-and-assess.md` | §Assessment |
+| `splitting` | `{TEMPLATES}/orchestrator-discover-and-assess.md` | §Splitting |
+| `execution` | `{TEMPLATES}/orchestrator-execute-and-merge.md` | §Execution |
+| `merging` | `{TEMPLATES}/orchestrator-execute-and-merge.md` | §Merging |
+| `loop-check` | `{TEMPLATES}/orchestrator-execute-and-merge.md` | §Loop Check |
+| `report` | `{TEMPLATES}/orchestrator-execute-and-merge.md` | §Report |
 
-All paths are relative to `.claude/commands/`.
+**Resolve `{TEMPLATES}`**: If `.claude/commands/audit-templates/` exists in the project, use that. Otherwise use `~/.claude/commands/audit-templates/`. Store the resolved path in `state.templatesPath` on first run so agents use a consistent location.
+
+Template paths: check `.claude/commands/` first (project-local), then `~/.claude/commands/` (global). Use whichever exists.
 
 ## Phase Flow
 

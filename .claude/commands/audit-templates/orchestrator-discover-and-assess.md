@@ -12,7 +12,7 @@ Check if `.claude/go-live/GO-LIVE-CHECKLIST.md` exists. If it does, set `goLiveE
 
 Launch one Agent (`subagent_type: "Explore"`, very thorough):
 
-> Map every user-facing workflow in this codebase. Read your detailed instructions at `.claude/commands/audit-templates/discover-workflows.md`. {Only if goLiveExists: "A go-live checklist exists at `.claude/go-live/GO-LIVE-CHECKLIST.md` — read it and incorporate its items. For each checklist item: if the feature/workflow already exists in the codebase, include it as a discovered workflow. If it does NOT yet exist, include it as a workflow with a note `(not yet implemented — from go-live checklist)` so assessors can flag it."} Write output to `.claude/audit/workflows.md`.
+> Map every user-facing workflow in this codebase. Read your detailed instructions at `{state.templatesPath}/discover-workflows.md`. {Only if goLiveExists: "A go-live checklist exists at `.claude/go-live/GO-LIVE-CHECKLIST.md` — read it and incorporate its items. For each checklist item: if the feature/workflow already exists in the codebase, include it as a discovered workflow. If it does NOT yet exist, include it as a workflow with a note `(not yet implemented — from go-live checklist)` so assessors can flag it."} Write output to `.claude/audit/workflows.md`.
 
 On completion: read the file, count workflows, update `state.workflowCount` and `state.phase = "assessment"`.
 On failure: record in `state.errors`, retry once. If retry fails, STOP and ask the user.
@@ -32,7 +32,7 @@ If `state.workflowCount > 50`, prepend to each agent prompt: "There are {N} work
 
 Launch one Agent per pending lens (`subagent_type: "general-purpose"`), all in parallel. Use this parameterized prompt for each, substituting `{LENS}`:
 
-> You are a {LENS} auditor. Iteration: {I}. Read your instructions at `.claude/commands/audit-templates/assess-{LENS}.md`. Read workflows from `.claude/audit/workflows.md`. Write findings to `.claude/audit/findings/iter-{I}/findings-{LENS}.md`. {Only if I > 1: "Prior iteration findings at `.claude/audit/findings/iter-{I-1}/findings-{LENS}.md` — read those to check resolution status."} {Only if goLiveExists: "A go-live checklist exists at `.claude/go-live/GO-LIVE-CHECKLIST.md`. For any workflow marked `(not yet implemented — from go-live checklist)`, create a finding for the missing implementation with appropriate severity. Also read the go-live assessment files in `.claude/go-live/assessments/` as prior context — they cover the same codebase and will save you redundant scanning. Build on their findings rather than re-discovering everything from scratch."}
+> You are a {LENS} auditor. Iteration: {I}. Read your instructions at `{state.templatesPath}/assess-{LENS}.md`. Read workflows from `.claude/audit/workflows.md`. Write findings to `.claude/audit/findings/iter-{I}/findings-{LENS}.md`. {Only if I > 1: "Prior iteration findings at `.claude/audit/findings/iter-{I-1}/findings-{LENS}.md` — read those to check resolution status."} {Only if goLiveExists: "A go-live checklist exists at `.claude/go-live/GO-LIVE-CHECKLIST.md`. For any workflow marked `(not yet implemented — from go-live checklist)`, create a finding for the missing implementation with appropriate severity. Also read the go-live assessment files in `.claude/go-live/assessments/` as prior context — they cover the same codebase and will save you redundant scanning. Build on their findings rather than re-discovering everything from scratch."}
 
 Where `{LENS}` is each of: `ux`, `security`, `performance`.
 
