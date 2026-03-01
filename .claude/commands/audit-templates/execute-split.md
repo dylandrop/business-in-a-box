@@ -76,6 +76,10 @@ If a test fails due to a pre-existing issue (not your changes), note it in your 
 
 ### Step 4: Commit
 
+**CRITICAL — Verify you are on the worktree branch, NOT main:**
+1. Run `git branch --show-current` and confirm the branch name is NOT `main` or `master`. It should be a worktree-generated branch (e.g., `worktree-*` or `audit-*`).
+2. If you ARE on `main`, something went wrong — run `git checkout -b audit-iter-{I}-split-{N}` to create a new branch before committing.
+
 Stage ONLY your owned files: `git add {file1} {file2} ...`
 
 Commit with message: `audit: iteration {I} split {N} - {brief description}`

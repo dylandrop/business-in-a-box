@@ -7,42 +7,30 @@ Assess whether the current project is ready to launch as a production business. 
 Run: `mkdir -p .claude/go-live/assessments`
 
 If `.claude/go-live/state.json` exists, read it and jump to the current `phase`.
-Otherwise, write: `{"phase":"assessment","assessments":{"billing":"pending","analytics":"pending","testing":"pending","error-handling":"pending","feedback":"pending","auth":"pending","security":"pending","infrastructure":"pending","cicd":"pending"},"errors":[]}`
+Otherwise, write: `{"phase":"assessment","assessments":{"auth-security":"pending","testing-errors":"pending","billing-analytics":"pending","infrastructure-cicd":"pending","feedback":"pending"},"errors":[]}`
 
 ## Phase 1: Parallel Assessment
 
 Launch agents in parallel — each writes to its OWN file (no overwrites). Only launch agents for areas where `state.assessments.{area}` is `"pending"`.
 
-For each pending area, launch Agent (`subagent_type: "general-purpose"`) with the prompt below, substituting `{AREA}` and `{DESCRIPTION}`:
+For each pending area, launch Agent (`subagent_type: "general-purpose"`, `model: "haiku"`) with the prompt below, substituting `{AREA}` and `{DESCRIPTION}`:
 
 ### Agent prompts
 
-**billing** →
-> Assess go-live readiness for BILLING & PAYMENTS. Scan the codebase for: payment provider integrations (Stripe, etc.), subscription/plan management, invoicing, pricing pages, webhook handlers for payment events, trial/freemium logic. For each item found, note its status (implemented/partial/missing). For items NOT found, note what would typically be needed. Write findings + implementation suggestions to `.claude/go-live/assessments/billing.md`. Return ONE LINE: "Billing assessment complete."
+**auth-security** →
+> Assess go-live readiness for AUTHENTICATION, AUTHORIZATION & SECURITY. Scan the codebase for: auth provider (Clerk, Auth0, NextAuth, custom), login/signup/password-reset flows, MFA, OAuth, role-based access control, session management, token handling, HTTPS enforcement, CORS config, CSRF protection, input validation/sanitization, secrets management (.env, vault), dependency vulnerabilities (check lock files), rate limiting, security headers, data encryption. For each item found, note its status (implemented/partial/missing). For items NOT found, note what would typically be needed. Write findings + implementation suggestions to `.claude/go-live/assessments/auth-security.md`. Return ONE LINE: "Auth & Security assessment complete."
 
-**analytics** →
-> Assess go-live readiness for ANALYTICS & MONITORING. Scan the codebase for: analytics integrations (Mixpanel, Amplitude, PostHog, GA), event tracking, dashboards, health check endpoints, uptime monitoring, log aggregation, APM. For each item found, note its status. For items NOT found, note what would typically be needed. Write findings + implementation suggestions to `.claude/go-live/assessments/analytics.md`. Return ONE LINE: "Analytics assessment complete."
+**testing-errors** →
+> Assess go-live readiness for TESTING & ERROR HANDLING. Scan the codebase for: unit test suites + coverage, integration tests, E2E tests, test configs, CI test runs, test utilities, fixtures, mocking, coverage gaps, critical untested paths, global error boundaries, crash reporting (Sentry, Bugsnag, Crashlytics), error logging, fallback UIs, retry mechanisms, graceful degradation, unhandled rejection/exception handlers. For each item found, note its status (implemented/partial/missing). For items NOT found, note what would typically be needed. Write findings + implementation suggestions to `.claude/go-live/assessments/testing-errors.md`. Return ONE LINE: "Testing & Error Handling assessment complete."
 
-**testing** →
-> Assess go-live readiness for TESTING. Scan the codebase for: unit test suites + coverage, integration tests, E2E tests, test configs, CI test runs, test utilities, fixtures, mocking. Note coverage gaps and critical untested paths. Write findings + implementation suggestions to `.claude/go-live/assessments/testing.md`. Return ONE LINE: "Testing assessment complete."
+**billing-analytics** →
+> Assess go-live readiness for BILLING, PAYMENTS, ANALYTICS & MONITORING. Scan the codebase for: payment provider integrations (Stripe, etc.), subscription/plan management, invoicing, pricing pages, webhook handlers for payment events, trial/freemium logic, analytics integrations (Mixpanel, Amplitude, PostHog, GA), event tracking, dashboards, health check endpoints, uptime monitoring, log aggregation, APM. For each item found, note its status (implemented/partial/missing). For items NOT found, note what would typically be needed. Write findings + implementation suggestions to `.claude/go-live/assessments/billing-analytics.md`. Return ONE LINE: "Billing & Analytics assessment complete."
 
-**error-handling** →
-> Assess go-live readiness for ERROR HANDLING. Scan the codebase for: global error boundaries, crash reporting (Sentry, Bugsnag, Crashlytics), error logging, fallback UIs, retry mechanisms, graceful degradation, unhandled rejection/exception handlers. Write findings + implementation suggestions to `.claude/go-live/assessments/error-handling.md`. Return ONE LINE: "Error handling assessment complete."
+**infrastructure-cicd** →
+> Assess go-live readiness for INFRASTRUCTURE, ENVIRONMENTS & CI/CD. Scan the codebase for: hosting/deployment config (Vercel, Railway, AWS, etc.), staging vs production environment setup, environment variable management, database hosting, CDN, domain/DNS setup, SSL certificates, Docker configs, scaling config, GitHub Actions or other CI pipelines, automated testing in CI, linting in CI, build steps, deployment automation, preview deployments, release process, version management. For each item found, note its status (implemented/partial/missing). For items NOT found, note what would typically be needed. Write findings + implementation suggestions to `.claude/go-live/assessments/infrastructure-cicd.md`. Return ONE LINE: "Infrastructure & CI/CD assessment complete."
 
 **feedback** →
-> Assess go-live readiness for FEEDBACK FUNNELS. Scan the codebase for: contact forms, bug reporting, support email setup, in-app feedback widgets, NPS/survey tools, help center/FAQ, user communication channels. Write findings + implementation suggestions to `.claude/go-live/assessments/feedback.md`. Return ONE LINE: "Feedback assessment complete."
-
-**auth** →
-> Assess go-live readiness for AUTHENTICATION & AUTHORIZATION. Scan the codebase for: auth provider (Clerk, Auth0, NextAuth, custom), login/signup/password-reset flows, MFA, OAuth, role-based access control, session management, token handling. Write findings + implementation suggestions to `.claude/go-live/assessments/auth.md`. Return ONE LINE: "Auth assessment complete."
-
-**security** →
-> Assess go-live readiness for SECURITY. Scan the codebase for: HTTPS enforcement, CORS config, CSRF protection, input validation/sanitization, secrets management (.env, vault), dependency vulnerabilities (check lock files), rate limiting, security headers, data encryption. Write findings + implementation suggestions to `.claude/go-live/assessments/security.md`. Return ONE LINE: "Security assessment complete."
-
-**infrastructure** →
-> Assess go-live readiness for INFRASTRUCTURE & ENVIRONMENTS. Scan the codebase for: hosting/deployment config (Vercel, Railway, AWS, etc.), staging vs production environment setup, environment variable management, database hosting, CDN, domain/DNS setup, SSL certificates, Docker configs, scaling config. Write findings + implementation suggestions to `.claude/go-live/assessments/infrastructure.md`. Return ONE LINE: "Infrastructure assessment complete."
-
-**cicd** →
-> Assess go-live readiness for CI/CD. Scan the codebase for: GitHub Actions or other CI pipelines, automated testing in CI, linting in CI, build steps, deployment automation, preview deployments, release process, version management. Write findings + implementation suggestions to `.claude/go-live/assessments/cicd.md`. Return ONE LINE: "CI/CD assessment complete."
+> Assess go-live readiness for FEEDBACK FUNNELS. Scan the codebase for: contact forms, bug reporting, support email setup, in-app feedback widgets, NPS/survey tools, help center/FAQ, user communication channels. For each item found, note its status (implemented/partial/missing). For items NOT found, note what would typically be needed. Write findings + implementation suggestions to `.claude/go-live/assessments/feedback.md`. Return ONE LINE: "Feedback assessment complete."
 
 ### After each agent completes
 Set `state.assessments.{area} = "complete"` immediately (incremental checkpoint).
@@ -57,7 +45,7 @@ Set `state.phase = "recommendations"`.
 
 ## Phase 2: Compile Recommendations & User Decisions
 
-Launch one Agent (`subagent_type: "general-purpose"`) to compile:
+Launch one Agent (`subagent_type: "general-purpose"`, `model: "haiku"`) to compile:
 
 > Read ALL assessment files from `.claude/go-live/assessments/`. Compile into a structured recommendations file at `.claude/go-live/recommendations.md` with these sections:
 >
@@ -87,7 +75,7 @@ Set `state.phase = "checklist"`.
 
 ## Phase 3: Generate Go-Live Checklist
 
-Launch one Agent (`subagent_type: "general-purpose"`):
+Launch one Agent (`subagent_type: "general-purpose"`, `model: "haiku"`):
 
 > Read `.claude/go-live/recommendations.md` and `.claude/go-live/decisions.md`. Generate a comprehensive go-live checklist at `.claude/go-live/GO-LIVE-CHECKLIST.md` using this format:
 >

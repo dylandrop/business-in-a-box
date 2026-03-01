@@ -26,13 +26,13 @@ Read `state.iteration` → `I`. Run: `mkdir -p .claude/audit/findings/iter-{I}`
 Only launch agents for lenses where `state.assessment.{lens}` is `"pending"` (enables resume).
 
 ### Sharding note
-If `state.workflowCount > 15`, prepend to each agent prompt: "There are {N} workflows. Process in batches of 10, appending findings after each batch."
+If `state.workflowCount > 50`, prepend to each agent prompt: "There are {N} workflows. Process in batches of 10, appending findings after each batch." For 50 or fewer workflows, the workflows file fits comfortably in a single context pass — do NOT add batch instructions.
 
 ### Launch agents
 
 Launch one Agent per pending lens (`subagent_type: "general-purpose"`), all in parallel. Use this parameterized prompt for each, substituting `{LENS}`:
 
-> You are a {LENS} auditor. Iteration: {I}. Read your instructions at `.claude/commands/audit-templates/assess-{LENS}.md`. Read workflows from `.claude/audit/workflows.md`. Write findings to `.claude/audit/findings/iter-{I}/findings-{LENS}.md`. {Only if I > 1: "Prior iteration findings at `.claude/audit/findings/iter-{I-1}/findings-{LENS}.md` — read those to check resolution status."} {Only if goLiveExists: "A go-live checklist exists at `.claude/go-live/GO-LIVE-CHECKLIST.md`. For any workflow marked `(not yet implemented — from go-live checklist)`, create a finding for the missing implementation with appropriate severity."}
+> You are a {LENS} auditor. Iteration: {I}. Read your instructions at `.claude/commands/audit-templates/assess-{LENS}.md`. Read workflows from `.claude/audit/workflows.md`. Write findings to `.claude/audit/findings/iter-{I}/findings-{LENS}.md`. {Only if I > 1: "Prior iteration findings at `.claude/audit/findings/iter-{I-1}/findings-{LENS}.md` — read those to check resolution status."} {Only if goLiveExists: "A go-live checklist exists at `.claude/go-live/GO-LIVE-CHECKLIST.md`. For any workflow marked `(not yet implemented — from go-live checklist)`, create a finding for the missing implementation with appropriate severity. Also read the go-live assessment files in `.claude/go-live/assessments/` as prior context — they cover the same codebase and will save you redundant scanning. Build on their findings rather than re-discovering everything from scratch."}
 
 Where `{LENS}` is each of: `ux`, `security`, `performance`.
 
@@ -51,7 +51,7 @@ Set `state.phase = "splitting"`.
 
 **Delegate to an agent** to keep findings content out of orchestrator context.
 
-Launch one Agent (`subagent_type: "general-purpose"`):
+Launch one Agent (`subagent_type: "general-purpose"`, `model: "haiku"`):
 
 > You are a work-splitting coordinator. Read ALL findings from:
 > - `.claude/audit/findings/iter-{I}/findings-ux.md`
